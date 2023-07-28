@@ -85,7 +85,7 @@ def train_one_epoch(G: 'generator model',
         else:
             pose_calculated = None
             
-        lossG, loss_adv_accumulated, L_adv, L_attr, L_id, L_rec, L_l2_eyes = compute_generator_losses(G, Y, Xt, Xt_attr, Di,
+        lossG, loss_adv_accumulated, L_adv, L_attr, L_id, L_rec, L_l2_eyes, L_l2_pose = compute_generator_losses(G, Y, Xt, Xt_attr, Di,
                                                                              embed, ZY, eye_heatmaps, pose_calculated, loss_adv_accumulated, 
                                                                              diff_person, same_person, args)
         
@@ -134,6 +134,8 @@ def train_one_epoch(G: 'generator model',
         if args.use_wandb:
             if args.eye_detector_loss:
                 wandb.log({"loss_eyes": L_l2_eyes.item()}, commit=False)
+            if args.pose_detector_loss:
+                wandb.log({"loss_pose": L_l2_pose.item()}, commit=False)
             wandb.log({"loss_id": L_id.item(),
                        "lossD": lossD.item(),
                        "lossG": lossG.item(),
