@@ -75,8 +75,7 @@ def train_one_epoch(G: 'generator model',
             Xt_eyes, Xt_6points, Xt_heatmap_left, Xt_heatmap_right, Xt_heatmap_lec, Xt_heatmap_rec, Xt_heatmap_nt, Xt_heatmap_lmc, Xt_heatmap_rmc, Xt_heatmap_chin = detect_landmarks(Xt, model_ft)
             Y_eyes, Y_6points, Y_heatmap_left, Y_heatmap_right, Y_heatmap_lec, Y_heatmap_rec, Y_heatmap_nt, Y_heatmap_lmc, Y_heatmap_rmc, Y_heatmap_chin = detect_landmarks(Y, model_ft)
             eye_heatmaps = [Xt_heatmap_left, Xt_heatmap_right, Y_heatmap_left, Y_heatmap_right]
-            pose_heatmaps = [Xt_heatmap_lec, Xt_heatmap_rec, Xt_heatmap_nt, Xt_heatmap_lmc, Xt_heatmap_rmc, Xt_heatmap_chin,
-                             Y_heatmap_lec, Y_heatmap_rec, Y_heatmap_nt, Y_heatmap_lmc, Y_heatmap_rmc, Y_heatmap_chin]
+            pose_heatmaps = [Xt_heatmap_lec, Xt_heatmap_rec, Xt_heatmap_nt, Xt_heatmap_lmc, Xt_heatmap_rmc, Xt_heatmap_chin, Y_heatmap_lec, Y_heatmap_rec, Y_heatmap_nt, Y_heatmap_lmc, Y_heatmap_rmc, Y_heatmap_chin]
         else:
             eye_heatmaps = None
             pose_heatmaps = None
@@ -270,6 +269,7 @@ if __name__ == "__main__":
     parser.add_argument('--weight_id', default=20, type=float, help='Identity Loss weight')
     parser.add_argument('--weight_rec', default=10, type=float, help='Reconstruction Loss weight')
     parser.add_argument('--weight_eyes', default=0., type=float, help='Eyes Loss weight')
+    parser.add_argument('--weight_pose', default=0., type=float, help='Pose Loss weight')
     # training params you may want to change
     
     parser.add_argument('--backbone', default='unet', const='unet', nargs='?', choices=['unet', 'linknet', 'resnet'], help='Backbone for attribute encoder')
