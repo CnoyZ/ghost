@@ -25,7 +25,15 @@ def detect_landmarks(inputs, model_ft):
     pred_landmarks, _ = get_preds_fromhm(pred_heatmap)
     landmarks = pred_landmarks*4.0
     eyes = torch.cat((landmarks[:,96,:], landmarks[:,97,:]), 1)
-    return eyes, pred_heatmap[:,96,:,:], pred_heatmap[:,97,:,:]
+    six_points = torch.cat((landmarks[:,60,:], landmarks[:,72,:], landmarks[:,54,:], landmarks[:,76,:], landmarks[:,82,:], landmarks[:,16,:]), 1)
+    return eyes, six_points, pred_heatmap[:,96,:,:], pred_heatmap[:,97,:,:], pred_heatmap[:,60,:,:], pred_heatmap[:,72,:,:], pred_heatmap[:,54,:,:], pred_heatmap[:,76,:,:], pred_heatmap[:,82,:,:], pred_heatmap[:,16,:,:]
+            
+# 60: left eye's left corner
+# 72: right eye's right corner
+# 54: nose tip
+# 76: left mouth corner
+# 82: right mouth corner
+# 16: chin
 
 
 def paint_eyes(images, eyes):
