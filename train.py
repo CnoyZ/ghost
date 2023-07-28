@@ -24,7 +24,7 @@ from network.MultiscaleDiscriminator import *
 from utils.training.Dataset import FaceEmbedVGG2, FaceEmbed
 from utils.training.image_processing import make_image_list, get_faceswap
 from utils.training.losses import hinge_loss, compute_discriminator_loss, compute_generator_losses
-from utils.training.detector import detect_landmarks, paint_eyes
+from utils.training.detector import detect_landmarks, paint_eyes, detect_pose
 from AdaptiveWingLoss.core import models
 from arcface_model.iresnet import iresnet100
 
@@ -77,9 +77,16 @@ def train_one_epoch(G: 'generator model',
             eye_heatmaps = [Xt_heatmap_left, Xt_heatmap_right, Y_heatmap_left, Y_heatmap_right]
         else:
             eye_heatmaps = None
+
+        if args.pose_detector_loss:
+            Xt_pitch, Xt_yaw, Xt_roll = detect_pose(Xt, model_ft)
+            Y_pitch, Y_yaw, Y_roll = detect_pose(Y, model_ft)
+            pose_calculated = [Xt_pitch, Xt_yaw, Xt_roll, Y_pitch, Y_yaw, Y_roll]
+        else:
+            pose_calculated = None
             
         lossG, loss_adv_accumulated, L_adv, L_attr, L_id, L_rec, L_l2_eyes = compute_generator_losses(G, Y, Xt, Xt_attr, Di,
-                                                                             embed, ZY, eye_heatmaps,loss_adv_accumulated, 
+                                                                             embed, ZY, eye_heatmaps, pose_calculated, loss_adv_accumulated, 
                                                                              diff_person, same_person, args)
         
         with amp.scale_loss(lossG, opt_G) as scaled_loss:
@@ -180,7 +187,7 @@ def train(args, device):
     netArc=netArc.cuda()
     netArc.eval()
     
-    if args.eye_detector_loss:
+    if args.eye_detector_loss or args.pose_detector_loss:
         model_ft = models.FAN(4, "False", "False", 98)
         checkpoint = torch.load('./AdaptiveWingLoss/AWL_detector/WFLW_4HG.pth')
         if 'state_dict' not in checkpoint:
@@ -279,6 +286,7 @@ if __name__ == "__main__":
     parser.add_argument('--scheduler_step', default=5000, type=int)
     parser.add_argument('--scheduler_gamma', default=0.2, type=float, help='It is value, which shows how many times to decrease LR')
     parser.add_argument('--eye_detector_loss', default=False, type=bool, help='If True eye loss with using AdaptiveWingLoss detector is applied to generator')
+    parser.add_argument('--pose_detector_loss', default=False, type=bool, help='If True pose angle loss with using AdaptiveWingLoss detector is applied to generator')
     # info about this run
     parser.add_argument('--use_wandb', default=False, type=bool, help='Use wandb to track your experiments or not')
     parser.add_argument('--run_name', required=True, type=str, help='Name of this run. Used to create folders where to save the weights.')
