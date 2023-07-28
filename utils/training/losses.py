@@ -11,7 +11,7 @@ def hinge_loss(X, positive=True):
         return torch.relu(X+1)
     
     
-def compute_generator_losses(G, Y, Xt, Xt_attr, Di, embed, ZY, eye_heatmaps, loss_adv_accumulated, 
+def compute_generator_losses(G, Y, Xt, Xt_attr, Di, embed, ZY, eye_heatmaps, pose_heatmaps, loss_adv_accumulated, 
                              diff_person, same_person, args):
     # adversarial loss
     L_adv = 0.
@@ -40,14 +40,17 @@ def compute_generator_losses(G, Y, Xt, Xt_attr, Di, embed, ZY, eye_heatmaps, los
     if args.eye_detector_loss:
         Xt_heatmap_left, Xt_heatmap_right, Y_heatmap_left, Y_heatmap_right = eye_heatmaps
         L_l2_eyes = l2_loss(Xt_heatmap_left, Y_heatmap_left) + l2_loss(Xt_heatmap_right, Y_heatmap_right)
+        Xt_heatmap_lec, Xt_heatmap_rec, Xt_heatmap_nt, Xt_heatmap_lmc, Xt_heatmap_rmc, Xt_heatmap_chin, Y_heatmap_lec, Y_heatmap_rec, Y_heatmap_nt, Y_heatmap_lmc, Y_heatmap_rmc, Y_heatmap_chin = pose_heatmaps
+        L_l2_pose = l2_loss(Xt_heatmap_lec, Y_heatmap_lec) + l2_loss(Xt_heatmap_rec, Y_heatmap_rec) + l2_loss(Xt_heatmap_nt, Y_heatmap_nt) + l2_loss(Xt_heatmap_lmc, Y_heatmap_lmc) + l2_loss(Xt_heatmap_rmc, Y_heatmap_rmc) + l2_loss(Xt_heatmap_chin, Y_heatmap_chin)
     else:
         L_l2_eyes = 0
+        L_l2_pose = 0
         
     # final loss of generator
-    lossG = args.weight_adv*L_adv + args.weight_attr*L_attr + args.weight_id*L_id + args.weight_rec*L_rec + args.weight_eyes*L_l2_eyes
+    lossG = args.weight_adv*L_adv + args.weight_attr*L_attr + args.weight_id*L_id + args.weight_rec*L_rec + args.weight_eyes*L_l2_eyes + args.weight_pose*L_l2_pose
     loss_adv_accumulated = loss_adv_accumulated*0.98 + L_adv.item()*0.02
     
-    return lossG, loss_adv_accumulated, L_adv, L_attr, L_id, L_rec, L_l2_eyes
+    return lossG, loss_adv_accumulated, L_adv, L_attr, L_id, L_rec, L_l2_eyes, L_l2_pose
 
 
 def compute_discriminator_loss(D, Y, Xs, diff_person):
