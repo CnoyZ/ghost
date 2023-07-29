@@ -185,7 +185,7 @@ def train(args, device):
     
     if args.eye_detector_loss:
         model_ft = models.FAN(4, "False", "False", 98)
-        checkpoint = torch.load('./AdaptiveWingLoss/AWL_detector/WFLW_4HG.pth')
+        checkpoint = torch.load('./weights/WFLW_4HG.pth')
         if 'state_dict' not in checkpoint:
             model_ft.load_state_dict(checkpoint)
         else:
