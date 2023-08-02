@@ -81,7 +81,7 @@ class Face_detect_crop:
         kps = None
         if kpss is not None:
             kps = kpss[best_index]
-        M, _ = face_align.estimate_norm(kps, crop_size, mode ='None') 
+        M = face_align.estimate_norm(kps, crop_size, mode ='None') 
         align_img = cv2.warpAffine(img, M, (crop_size, crop_size), borderValue=0.0)
         
         return [align_img], [M]
