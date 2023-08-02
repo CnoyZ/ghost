@@ -159,7 +159,7 @@ def crop_frames_and_get_transforms(full_frames: List[np.ndarray],
     for i, frame in tqdm(enumerate(full_frames)):
         for q in range (len(target_embeds)):  
             try:
-                M, _ = face_align.estimate_norm(smooth_kps[q][i], crop_size, mode ='None') 
+                M = face_align.estimate_norm(smooth_kps[q][i], crop_size, mode ='None') 
                 align_img = cv2.warpAffine(frame, M, (crop_size, crop_size), borderValue=0.0)
                 crop_frames[q].append(align_img)
                 tfm_array[q].append(M)
