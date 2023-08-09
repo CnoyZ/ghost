@@ -115,13 +115,14 @@ def train_one_epoch(G: 'generator model',
                 wandb.log({"gen_images":wandb.Image(image, caption=f"{epoch:03}" + '_' + f"{iteration:06}")})
             else:
                 cv2.imwrite('./images/generated_image.jpg', image[:,:,::-1])
-        
+      
         if iteration % 10 == 0:
             print(f'epoch: {epoch}    {iteration} / {len(dataloader)}')
             print(f'lossD: {lossD.item()}    lossG: {lossG.item()} batch_time: {batch_time}s')
             print(f'L_adv: {L_adv.item()} L_id: {L_id.item()} L_attr: {L_attr.item()} L_rec: {L_rec.item()}')
             if args.eye_detector_loss:
                 print(f'L_l2_eyes: {L_l2_eyes.item()}')
+                print(f'L_l2_pose: {L_l2_pose.item()}')
             print(f'loss_adv_accumulated: {loss_adv_accumulated}')
             if args.scheduler:
                 print(f'scheduler_G lr: {scheduler_G.get_last_lr()} scheduler_D lr: {scheduler_D.get_last_lr()}')
@@ -164,6 +165,35 @@ def train_one_epoch(G: 'generator model',
             wandb.log({"our_images":wandb.Image(output, caption=f"{epoch:03}" + '_' + f"{iteration:06}")})
 
             G.train()
+        #add early stopping
+        if args.lossG_best is None:
+            args.lossG_best = lossG
+        elif lossG >= args.lossG_best:
+            args.lossG_counter += 1
+            if args.lossG_counter >= args.lossG_patience:
+                print("EarlyStopping: Stop training at iteration {}".format(iteration))
+              
+                print(f'epoch: {epoch}    {iteration} / {len(dataloader)}')
+                print(f'lossD: {lossD.item()}    lossG: {lossG.item()} batch_time: {batch_time}s')
+                print(f'L_adv: {L_adv.item()} L_id: {L_id.item()} L_attr: {L_attr.item()} L_rec: {L_rec.item()}')
+                if args.eye_detector_loss:
+                    print(f'L_l2_eyes: {L_l2_eyes.item()}')
+                    print(f'L_l2_pose: {L_l2_pose.item()}')
+                print(f'loss_adv_accumulated: {loss_adv_accumulated}')
+                if args.scheduler:
+                    print(f'scheduler_G lr: {scheduler_G.get_last_lr()} scheduler_D lr: {scheduler_D.get_last_lr()}')
+                  
+                torch.save(G.state_dict(), f'./saved_models_{args.run_name}/G_latest.pth')
+                torch.save(D.state_dict(), f'./saved_models_{args.run_name}/D_latest.pth')
+    
+                torch.save(G.state_dict(), f'./current_models_{args.run_name}/G_' + str(epoch)+ '_' + f"{iteration:06}" + '.pth')
+                torch.save(D.state_dict(), f'./current_models_{args.run_name}/D_' + str(epoch)+ '_' + f"{iteration:06}" + '.pth')
+              
+                args.stop_training = True
+                break
+        else:
+            args.lossG_best = lossG
+            args.lossG_counter = 0
 
 
 def train(args, device):
@@ -233,18 +263,20 @@ def train(args, device):
     
     for epoch in range(0, max_epoch):
         train_one_epoch(G,
-                        D,
-                        opt_G,
-                        opt_D,
-                        scheduler_G,
-                        scheduler_D,
-                        netArc,
-                        model_ft,
-                        args,
-                        dataloader,
-                        device,
-                        epoch,
-                        loss_adv_accumulated)
+                            D,
+                            opt_G,
+                            opt_D,
+                            scheduler_G,
+                            scheduler_D,
+                            netArc,
+                            model_ft,
+                            args,
+                            dataloader,
+                            device,
+                            epoch,
+                            loss_adv_accumulated)
+        if args.stop_training:
+            break
 
 def main(args):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -283,6 +315,7 @@ if __name__ == "__main__":
     parser.add_argument('--scheduler_step', default=5000, type=int)
     parser.add_argument('--scheduler_gamma', default=0.2, type=float, help='It is value, which shows how many times to decrease LR')
     parser.add_argument('--eye_detector_loss', default=False, type=bool, help='If True eye loss with using AdaptiveWingLoss detector is applied to generator')
+    parser.add_argument('--lossG_patience', default=0, type=int, help='Patience to help judge early stop')
     # info about this run
     parser.add_argument('--use_wandb', default=False, type=bool, help='Use wandb to track your experiments or not')
     parser.add_argument('--run_name', required=True, type=str, help='Name of this run. Used to create folders where to save the weights.')
@@ -296,6 +329,9 @@ if __name__ == "__main__":
     parser.add_argument('--show_step', default=500, type=int)
     parser.add_argument('--save_epoch', default=1, type=int)
     parser.add_argument('--optim_level', default='O2', type=str)
+    parser.add_argument('--lossG_best', default=None, type=float, help='Save the best value of lossG')
+    parser.add_argument('--lossG_counter', default=0, type=int, help='Count to help judge early stop')
+    parser.add_argument('--stop_training', default=False, type=bool, help='Stop training or not')
 
     args = parser.parse_args()
     
