@@ -182,7 +182,7 @@ def train_one_epoch(G: 'generator model',
                 print(f'loss_adv_accumulated: {loss_adv_accumulated}')
                 if args.scheduler:
                     print(f'scheduler_G lr: {scheduler_G.get_last_lr()} scheduler_D lr: {scheduler_D.get_last_lr()}')
-                  
+                print('the best lossG is:{}'.format(args.lossG_best))
                 torch.save(G.state_dict(), f'./saved_models_{args.run_name}/G_latest.pth')
                 torch.save(D.state_dict(), f'./saved_models_{args.run_name}/D_latest.pth')
     
@@ -194,6 +194,8 @@ def train_one_epoch(G: 'generator model',
         else:
             args.lossG_best = lossG
             args.lossG_counter = 0
+            torch.save(G.state_dict(), f'./saved_models_{args.run_name}/G_best.pth')
+            torch.save(D.state_dict(), f'./saved_models_{args.run_name}/D_best.pth')
 
 
 def train(args, device):
