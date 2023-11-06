@@ -4,17 +4,17 @@ Licensed under the CC BY-NC-SA 4.0 license (https://creativecommons.org/licenses
 """
 
 import torch
-from models.networks.base_network import BaseNetwork
-from models.networks.loss import *
-from models.networks.discriminator import *
-from models.networks.generator import *
-from models.networks.encoder import *
-import utils.inference.util as util
+from ghost.models.networks.base_network import BaseNetwork
+from ghost.models.networks.loss import *
+from ghost.models.networks.discriminator import *
+from ghost.models.networks.generator import *
+from ghost.models.networks.encoder import *
+import ghost.utils.inference.util as util
 
 
 def find_network_using_name(target_network_name, filename):
     target_class_name = target_network_name + filename
-    module_name = 'models.networks.' + filename
+    module_name = 'ghost.models.networks.' + filename
     network = util.find_class_in_module(target_class_name, module_name)
 
     assert issubclass(network, BaseNetwork), \
