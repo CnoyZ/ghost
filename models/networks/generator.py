@@ -6,10 +6,10 @@ Licensed under the CC BY-NC-SA 4.0 license (https://creativecommons.org/licenses
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from models.networks.base_network import BaseNetwork
-from models.networks.normalization import get_nonspade_norm_layer
-from models.networks.architecture import ResnetBlock as ResnetBlock
-from models.networks.architecture import SPADEResnetBlock as SPADEResnetBlock
+from ghost.models.networks.base_network import BaseNetwork
+from ghost.models.networks.normalization import get_nonspade_norm_layer
+from ghost.models.networks.architecture import ResnetBlock as ResnetBlock
+from ghost.models.networks.architecture import SPADEResnetBlock as SPADEResnetBlock
 import os
 #import data  # only run from basic level!
 import copy  # deepcopy
