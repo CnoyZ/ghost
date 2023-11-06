@@ -4,8 +4,8 @@ Licensed under the CC BY-NC-SA 4.0 license (https://creativecommons.org/licenses
 """
 
 import torch
-import models.networks as networks
-import utils.inference.util as util
+import ghost.models.networks as networks
+import ghost.utils.inference.util as util
 import random
 
 
